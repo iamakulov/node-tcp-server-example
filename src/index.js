@@ -34,6 +34,14 @@ createServer(socket => {
             });
         }
     });
+
+    socket.on('error', () => {
+        debug('Connection aborted');
+    });
+
+    socket.on('close', () => {
+        debug('Connection closed');
+    });
 }).listen(5000);
 
 console.log('Server is running at port 5000');
