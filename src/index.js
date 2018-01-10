@@ -42,6 +42,6 @@ createServer(socket => {
     socket.on('close', () => {
         debug('Connection closed');
     });
-}).listen(5000);
+}).listen(3000);
 
-console.log('Server is running at port 5000');
+console.log('Server is running at port 3000');
