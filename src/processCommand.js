@@ -19,7 +19,7 @@ const processCommand = async (command, commandParams, socket) => {
     };
     const defaultHandler = () => {
         debug(`Command ${command} is not supported`);
-        return `Command ${command} is not supported`;
+        return `ERROR Command ${command} is not supported`;
     };
 
     const handler = handlerByCommandWord[command] || defaultHandler;
