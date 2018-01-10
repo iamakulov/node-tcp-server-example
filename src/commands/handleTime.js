@@ -1,6 +1,6 @@
 const createDebug = require('debug');
 
-const debug = createDebug('lab1:handleEcho');
+const debug = createDebug('lab1:handleTime');
 
 const handleTime = () => {
     debug('Called the handleTime command');
