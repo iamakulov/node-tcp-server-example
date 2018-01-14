@@ -9,7 +9,7 @@ createServer(socket => {
 
     let buffer = '';
 
-    socket.on('data', data => {
+    socket.on('data', async data => {
         const decodedData = data.toString('utf-8');
         buffer += decodedData;
         debug('Received the data:', decodedData);
@@ -19,7 +19,7 @@ createServer(socket => {
         buffer = requests[requests.length - 1];
 
         if (completeRequests.length > 0) {
-            completeRequests.forEach(request => {
+            const promises = completeRequests.map(request => {
                 debug('Handling a request:', request);
 
                 const normalizedRequest = request.trim();
@@ -30,9 +30,15 @@ createServer(socket => {
                     .slice(1)
                     .join(' ');
 
-                processCommand(command, commandParams, socket);
+                return processCommand(command, commandParams, socket);
             });
+
+            await Promise.all(promises);
         }
+
+        console.log(
+            `Read: ${socket.bytesRead} b · Written: ${socket.bytesWritten} b`,
+        );
     });
 
     socket.on('error', () => {
