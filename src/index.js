@@ -85,7 +85,7 @@ socket.on('message', async (data, reqInfo) => {
         );
     } else {
         debug('Setting the timeout');
-        verificationTimeout = setTimeout(verifyRequests, 60000);
+        verificationTimeout = setTimeout(verifyRequests, 10000);
     }
 
     console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
