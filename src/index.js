@@ -92,6 +92,8 @@ socket.on('message', async (data, reqInfo) => {
 });
 
 socket.on('listening', () => {
+    socket.setSendBufferSize(50 * 1024 * 1024);
+    socket.setRecvBufferSize(50 * 1024 * 1024);
     console.log('Server is running at port 3000');
 });
 
