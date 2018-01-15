@@ -21,7 +21,7 @@ const processCommand = async (
         upload: handleUpload,
         close: () => {
             debug('Closing the connection...');
-            socket.end();
+            socket.close();
         },
     };
     const defaultHandler = () => {
