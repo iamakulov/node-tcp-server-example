@@ -1,53 +1,47 @@
-const { createServer } = require('net');
+const { createSocket } = require('dgram');
 const createDebug = require('debug');
 const processCommand = require('./processCommand');
 
 const debug = createDebug('lab1:index');
 
-createServer(socket => {
-    debug(`Client ${socket.remoteAddress}:${socket.remotePort} connected`);
+const socket = createSocket('udp4');
 
-    let buffer = '';
+let totalRead = 0;
+let totalWritten = 0;
 
-    socket.on('data', async data => {
-        const decodedData = data.toString('utf-8');
-        buffer += decodedData;
-        debug('Received the data:', decodedData);
+socket.on('message', async (data, reqInfo) => {
+    const decodedData = data.toString('utf-8');
+    totalRead += decodedData.length;
+    debug('Received the data:', decodedData);
 
-        const requests = buffer.split(/\r?\n/);
-        const completeRequests = requests.slice(0, -1);
-        buffer = requests[requests.length - 1];
+    const normalizedRequest = decodedData.trim();
+    const command = normalizedRequest.split(' ')[0].toLowerCase();
+    const commandParams = normalizedRequest
+        .split(' ')
+        .slice(1)
+        .join(' ');
 
-        if (completeRequests.length > 0) {
-            const promises = completeRequests.map(request => {
-                debug('Handling a request:', request);
+    totalWritten += await processCommand(
+        command,
+        commandParams,
+        socket,
+        reqInfo.port,
+        reqInfo.address,
+    );
 
-                const normalizedRequest = request.trim();
+    console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
+});
 
-                const command = normalizedRequest.split(' ')[0].toLowerCase();
-                const commandParams = normalizedRequest
-                    .split(' ')
-                    .slice(1)
-                    .join(' ');
+socket.on('listening', () => {
+    console.log('Server is running at port 3000');
+});
 
-                return processCommand(command, commandParams, socket);
-            });
+socket.on('error', e => {
+    debug('Connection errored', e);
+});
 
-            await Promise.all(promises);
-        }
+socket.on('close', () => {
+    debug('Connection closed');
+});
 
-        console.log(
-            `Read: ${socket.bytesRead} b · Written: ${socket.bytesWritten} b`,
-        );
-    });
-
-    socket.on('error', () => {
-        debug('Connection aborted');
-    });
-
-    socket.on('close', () => {
-        debug('Connection closed');
-    });
-}).listen(3000);
-
-console.log('Server is running at port 3000');
+socket.bind(3000);

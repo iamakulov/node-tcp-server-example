@@ -6,7 +6,13 @@ const handleUpload = require('./commands/handleUpload');
 
 const debug = createDebug('lab1:processCommand');
 
-const processCommand = async (command, commandParams, socket) => {
+const processCommand = async (
+    command,
+    commandParams,
+    socket,
+    port,
+    address,
+) => {
     const handlerByCommandWord = {
         echo: handleEcho,
         time: handleTime,
@@ -25,8 +31,10 @@ const processCommand = async (command, commandParams, socket) => {
     const handler = handlerByCommandWord[command] || defaultHandler;
     const response = await handler(commandParams);
     if (response) {
-        socket.write(`${response}\n`, 'utf-8');
+        socket.send(response, port, address);
     }
+
+    return response ? response.length : 0;
 };
 
 module.exports = processCommand;
