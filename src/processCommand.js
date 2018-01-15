@@ -3,6 +3,7 @@ const handleEcho = require('./commands/handleEcho');
 const handleTime = require('./commands/handleTime');
 const handleDownload = require('./commands/handleDownload');
 const handleUpload = require('./commands/handleUpload');
+const sendSocketResponse = require('./utils/sendSocketResponse');
 
 const debug = createDebug('lab1:processCommand');
 
@@ -31,7 +32,7 @@ const processCommand = async (
     const handler = handlerByCommandWord[command] || defaultHandler;
     const response = await handler(commandParams);
     if (response) {
-        socket.send(response, port, address);
+        sendSocketResponse(response, socket, port, address);
     }
 
     return response ? response.length : 0;

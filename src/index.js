@@ -1,6 +1,7 @@
 const { createSocket } = require('dgram');
 const createDebug = require('debug');
 const processCommand = require('./processCommand');
+const sendSocketResponse = require('./utils/sendSocketResponse');
 
 const debug = createDebug('lab1:index');
 
@@ -27,8 +28,9 @@ const verifyRequests = () => {
             const receivedChunks = Object.keys(requests[requestId].chunks)
                 .length;
             const lostChunks = totalChunks - receivedChunks;
-            socket.send(
-                `ERROR Lost ${lostChunks} of ${totalChunks} chunks`,
+            sendSocketResponse(
+                `ERROR Lost ${lostChunks} of ${totalChunks} chunks on the server`,
+                socket,
                 requests[requestId].clientPort,
                 requests[requestId].clientAddress,
             );
