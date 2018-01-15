@@ -83,12 +83,12 @@ socket.on('message', async (data, reqInfo) => {
             reqInfo.port,
             reqInfo.address,
         );
-
-        console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
     } else {
         debug('Setting the timeout');
         verificationTimeout = setTimeout(verifyRequests, 60000);
     }
+
+    console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
 });
 
 socket.on('listening', () => {
