@@ -23,8 +23,12 @@ const verifyRequests = () => {
         .forEach(requestId => {
             debug(`Erroring the ${requestId} timeout`);
 
+            const { totalChunks } = requests[requestId];
+            const receivedChunks = Object.keys(requests[requestId].chunks)
+                .length;
+            const lostChunks = totalChunks - receivedChunks;
             socket.send(
-                'ERROR Lost a part of payload',
+                `ERROR Lost ${lostChunks} of ${totalChunks} chunks`,
                 requests[requestId].clientPort,
                 requests[requestId].clientAddress,
             );
@@ -81,7 +85,7 @@ socket.on('message', async (data, reqInfo) => {
         console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
     } else {
         debug('Setting the timeout');
-        verificationTimeout = setTimeout(verifyRequests, 30000);
+        verificationTimeout = setTimeout(verifyRequests, 10000);
     }
 });
 
