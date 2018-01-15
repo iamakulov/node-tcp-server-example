@@ -9,27 +9,80 @@ const socket = createSocket('udp4');
 let totalRead = 0;
 let totalWritten = 0;
 
+const requests = {};
+
+let verificationTimeout;
+const verifyRequests = () => {
+    debug('Executing the timeout');
+    Object.keys(requests)
+        .filter(
+            requestId =>
+                Object.keys(requests[requestId].chunks).length <
+                requests[requestId].totalChunks,
+        )
+        .forEach(requestId => {
+            debug(`Erroring the ${requestId} timeout`);
+
+            socket.send(
+                'ERROR Lost a part of payload',
+                requests[requestId].clientPort,
+                requests[requestId].clientAddress,
+            );
+            delete requests[requestId];
+        });
+};
+
 socket.on('message', async (data, reqInfo) => {
     const decodedData = data.toString('utf-8');
     totalRead += decodedData.length;
     debug('Received the data:', decodedData);
 
     const normalizedRequest = decodedData.trim();
-    const command = normalizedRequest.split(' ')[0].toLowerCase();
-    const commandParams = normalizedRequest
-        .split(' ')
-        .slice(1)
-        .join(' ');
+    const [
+        ,
+        requestId,
+        chunkIndex,
+        totalChunks,
+        chunkContent,
+    ] = normalizedRequest.match(/^(.+)::(.+)::(.+)::(.+)$/);
 
-    totalWritten += await processCommand(
-        command,
-        commandParams,
-        socket,
-        reqInfo.port,
-        reqInfo.address,
-    );
+    requests[requestId] = requests[requestId] || {
+        clientPort: reqInfo.port,
+        clientAddress: reqInfo.address,
+        totalChunks: Number(totalChunks),
+        chunks: {},
+    };
+    requests[requestId].chunks[chunkIndex] = chunkContent;
 
-    console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
+    clearTimeout(verificationTimeout);
+
+    if (
+        Object.keys(requests[requestId].chunks).length ===
+        requests[requestId].totalChunks
+    ) {
+        debug('Executing the command');
+        const requestContent = Object.values(requests[requestId].chunks).join(
+            '',
+        );
+        const command = requestContent.split(' ')[0].toLowerCase();
+        const commandParams = requestContent
+            .split(' ')
+            .slice(1)
+            .join(' ');
+
+        totalWritten += await processCommand(
+            command,
+            commandParams,
+            socket,
+            reqInfo.port,
+            reqInfo.address,
+        );
+
+        console.log(`Read: ${totalRead} b · Written: ${totalWritten} b`);
+    } else {
+        debug('Setting the timeout');
+        verificationTimeout = setTimeout(verifyRequests, 30000);
+    }
 });
 
 socket.on('listening', () => {
