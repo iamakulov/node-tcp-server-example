@@ -37,7 +37,9 @@ createServer(socket => {
         }
 
         console.log(
-            `Read: ${socket.bytesRead} b · Written: ${socket.bytesWritten} b`,
+            `Client ${socket.remoteAddress}:${socket.remotePort} · Read: ${
+                socket.bytesRead
+            } b · Written: ${socket.bytesWritten} b`,
         );
     });
 
