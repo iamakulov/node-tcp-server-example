@@ -34,11 +34,11 @@ createServer(socket => {
             });
 
             await Promise.all(promises);
-        }
 
-        console.log(
-            `Read: ${socket.bytesRead} b · Written: ${socket.bytesWritten} b`,
-        );
+            console.log(
+                `Read: ${socket.bytesRead} b · Written: ${socket.bytesWritten} b`,
+            );
+        }
     });
 
     socket.on('error', () => {
